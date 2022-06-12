@@ -9,11 +9,7 @@
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <string>
-
-// #include "test_common.h"
 #include "ReactorSingleton.h"
-
-//reactor::Reactor g_reactor;
 #define g_reactor (*(sGlobal->g_reactor_ptr))
 
 const size_t kBufferSize = 1024;

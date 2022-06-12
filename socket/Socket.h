@@ -66,8 +66,8 @@ class TCPClient : public TCPSocket
 private:
     struct Packet
     {
-        unsigned int    msgLen;     //数据部分的长度(网络字节序)
-        char            text[1024]; //报文的数据部分
+        unsigned int    msgLen;     
+        char            text[1024]; 
     };
 public:
     TCPClient(unsigned short int port, const char *ip) throw(SocketException);
@@ -218,7 +218,6 @@ TCPServer::~TCPServer() {}
 void TCPServer::accept(TCPClient &client) const
 throw(SocketException)
 {
-    //显式调用基类TCPSocket的accept
     if (TCPSocket::accept(client) == -1)
         throw SocketException("tcp server accept error");
 }
@@ -231,7 +230,6 @@ throw(SocketException)
     return client;
 }
 
-/** client TCP Socket **/
 TCPClient::TCPClient(unsigned short int port, const char *ip)
 throw(SocketException)
 {
@@ -248,11 +246,11 @@ TCPClient::TCPClient(int clientfd)
     m_sockfd = clientfd;
 }
 TCPClient::~TCPClient() {}
-/** client端特有的send/receive **/
+
 static ssize_t readn(int fd, void *buf, size_t count);
 static ssize_t writen(int fd, const void *buf, size_t count);
 
-//send
+
 size_t TCPClient::send(const std::string& message)
 const throw(SocketException)
 {
@@ -268,7 +266,6 @@ const throw(SocketException)
 size_t TCPClient::receive(std::string& message)
 const throw(SocketException)
 {
-    //首先读取头部
     Packet buf = {0, 0};
     size_t readBytes = readn(m_sockfd, &buf.msgLen, sizeof(buf.msgLen));
     if (readBytes == (size_t)-1)
@@ -276,7 +273,6 @@ const throw(SocketException)
     else if (readBytes != sizeof(buf.msgLen))
         throw SocketException("peer connect closed");
 
-    //然后读取数据部分
     unsigned int lenHost = ntohl(buf.msgLen);
     readBytes = readn(m_sockfd, buf.text, lenHost);
     if (readBytes == (size_t)-1)
