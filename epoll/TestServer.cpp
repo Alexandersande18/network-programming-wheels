@@ -58,6 +58,7 @@ int main()
                     cerr << "client " << client->getfd() <<" connect closed" << endl;
                     epoll.delfd(client->getfd());
                     delete client;
+                    client_map.erase(iter);
                     continue;
                 }
                 cout << "msg from client "<< client->getfd() << ":" << buf << endl;

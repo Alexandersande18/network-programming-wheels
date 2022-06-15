@@ -5,12 +5,12 @@
 using namespace std;
 
 const int MAX_TASKS = 4;
-const int MAX_ITERARIONS = 10;
+const int MAX_ITERARIONS = 5;
 
 static Cond cond;
 static Mutex mutex;
 
-static stack<int> resourse;
+static stack<int> resource;
 
 class ProducerThread : public Thread
 {
@@ -20,10 +20,10 @@ class ProducerThread : public Thread
         int i = 0;
         while( i++ < MAX_ITERARIONS)
         {
-            int data = rand() % 1234;
+            int data = rand() % 114;
             sleep(2);
             mutex.lock();
-            resourse.push(data);
+            resource.push(data);
             cout << "Producing data = " << data << endl;
             mutex.unlock();
             cond.signal();
@@ -41,15 +41,15 @@ class ConsumerThread : public Thread
         while( i++ < MAX_ITERARIONS)
         {
             mutex.lock();
-            while(resourse.empty())
+            while(resource.empty())
             {
                 cout << "Producer is not ready" << endl << endl;
                 cond.wait(mutex.get_mutex_ptr());
                 break;
             }
             cout << "Producer is ready" << endl;
-            data = resourse.top();
-            resourse.pop();
+            data = resource.top();
+            resource.pop();
             cout << "Consuming data = " << data << endl;
             
             mutex.unlock();

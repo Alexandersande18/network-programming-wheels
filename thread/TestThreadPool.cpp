@@ -6,9 +6,9 @@
 using namespace std;
 
 const int MAX_TASKS = 4;
-const int MAX_ITERARIONS = 10;
+const int MAX_ITERARIONS = 5;
 
-static stack<int> resourse;
+static stack<int> resource;
 static Mutex mutex;
 static Cond cond;
 
@@ -20,7 +20,7 @@ void producer(void *arg)
         int data = rand() % 1234;
         sleep(2);
         mutex.lock();
-        resourse.push(data);
+        resource.push(data);
         cout << "Producing data = " << data << endl;
         mutex.unlock();
         cond.signal();
@@ -34,7 +34,7 @@ void consumer(void *arg)
     while( i++ < MAX_ITERARIONS)
     {
         mutex.lock();
-        while(resourse.empty())
+        while(resource.empty())
         {
             cout << "Producer is not ready" << endl << endl;
             cond.wait(mutex.get_mutex_ptr());
@@ -42,8 +42,8 @@ void consumer(void *arg)
         }
         
         cout << "Producer is ready" << endl;
-        data = resourse.top();
-        resourse.pop();
+        data = resource.top();
+        resource.pop();
         cout << "Consuming data = " << data << endl;
         
         mutex.unlock();
@@ -68,7 +68,6 @@ int main(int argc, char* argv[])
     sleep(2);
 
     tp.destroy_threadpool();
-    //cout << "Exiting app..." << endl;
 
     return 0;
 }

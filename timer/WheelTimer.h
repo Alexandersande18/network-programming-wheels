@@ -26,7 +26,7 @@ struct param
 /* 定时器任务 */
 struct TimerTask
 {
-    int repeat;
+    bool repeat;
     int timeval;
     int id;
     std::function<void()> task;
@@ -70,7 +70,7 @@ TimerWheel::TimerWheel(int tick, int slot_num, int layer_num):
     for(int i = 0;i < m_slot_num;++i){
         wheel[i].resize(m_layer_num);
     }
-    printf("init ok,timerwheel MAX_INTERVAL:%ld\n",m_tick*m_slot_num*m_layer_num);
+    printf("tick=%d ms, %d layers, %d slots, max_interval=%ld\n", m_tick, m_layer_num, m_slot_num, m_tick*m_slot_num*m_layer_num);
 }
 
 TimerWheel::~TimerWheel()
@@ -110,12 +110,11 @@ int TimerWheel::AddTask(struct TimerTask& task){
     int layer = ((interval / m_tick + m_cur_slot_num) / m_slot_num + m_cur_layer_num) % m_layer_num;
     // 设置任务所处的时间槽
     int slot = (interval / m_tick + m_cur_slot_num) % m_slot_num;
-    printf("test in %d %d %d\n",layer,slot,m_slot_num);
     if(slot >= m_slot_num){
         slot = slot % m_slot_num;
         layer = (layer+1) % layer;
     }
-    printf("add task in %d %d\n",layer,slot);
+    printf("add task in wheel[%d][%d]\n",layer,slot);
     wheel[slot][layer].push_back(std::move(task));
 }
 
@@ -131,7 +130,7 @@ int TimerWheel::init()
     new_its.it_value.tv_nsec = 0;
     new_its.it_interval.tv_sec = m_tick / 1000;
     new_its.it_interval.tv_nsec = (m_tick % 1000) * 1000 * 1000;
-    printf("timerset:%ld %ld\n", new_its.it_interval.tv_nsec, new_its.it_interval.tv_sec);
+    // printf("timerset:%ld %ld\n", new_its.it_interval.tv_nsec, new_its.it_interval.tv_sec);
     int ret = timerfd_settime(m_timer_fd, 1, &new_its, NULL);
     if(ret < 0){
         perror("timerfd_settime error\n");
@@ -185,10 +184,10 @@ void TimerWheel::tick()
     //do timerwheel work();
     static clock_t oldtime;
     clock_t newtime = clock();
-    printf("shedule is working newtime%ld %ld %f \n",newtime,oldtime,(float)(newtime-oldtime)/CLOCKS_PER_SEC*1000);
+    // printf("shedule is working newtime%ld %ld %f \n",newtime,oldtime,(float)(newtime-oldtime)/CLOCKS_PER_SEC*1000);
     oldtime = newtime;
     
-    printf("cur_layer:%d cur_slot: %d  \n",m_cur_layer_num,m_cur_slot_num);
+    printf("[tick]layer:%d slot:%d  \n",m_cur_layer_num,m_cur_slot_num);
     if(wheel[m_cur_slot_num][m_cur_layer_num].empty()){
         if (++m_cur_slot_num == m_slot_num)
         {
@@ -204,7 +203,7 @@ void TimerWheel::tick()
     int size = tasks->size();
     for(int i = 0;i<size;++i){
         tasks->front().task();
-        if(tasks->front().repeat == 1){
+        if(tasks->front().repeat){
             AddTask(tasks->front());
         }
         tasks->pop_front();

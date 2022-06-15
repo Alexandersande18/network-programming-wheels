@@ -1,9 +1,6 @@
 #include <iostream>
-
 #include "Socket.h"
-
 using namespace std;
-
 int main()
 {
     TCPClient client(8000, "127.0.0.1");

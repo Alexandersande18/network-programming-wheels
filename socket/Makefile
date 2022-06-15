@@ -5,7 +5,6 @@ client: TestClient.cpp Socket.h
 server: TestServer.cpp Socket.h
 	g++ ./TestServer.cpp -std=c++11 -o server
 
-
 .PHONY: clean
 clean:
 	rm $(objects)
